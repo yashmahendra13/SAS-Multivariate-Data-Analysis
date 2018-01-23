@@ -1,0 +1,165 @@
+*;
+*;
+* HBAT - Principal Components Analysis;
+*;
+    ods graphics on;
+*;
+options ls=80 ps=50 nodate pageno=1;
+*;
+* Input HBAT ;
+*;
+Data HBAT;
+Infile 'N:\BIA652C_Multivariate Data Analysis_Spring 2016\Class_06-07_Chap 3\HBAT_tabs.txt' DLM = '09'X TRUNCOVER;
+Input ID X1 X2 X3 X4 X5 X6 X7 X8 X9 X10 X11 X12 X13 X14 X15 X16 X17 X18 X19 X20 X21 X22 X23;
+*;
+Data HBAT;
+	Set HBAT (Keep = X6 X7 X8 X9 X10 X11 X12 X13 X14 X15 X16 X17 X18);
+	Label X6 = 'X6 - Product Quality'
+	      X7 = 'X7 - E-Commerce'
+          X8 = 'X8 - Technical Support'
+          X9 = 'X9 - Complaint Resolution'
+          X10 = 'X10 - Advertizing'
+          X11 = 'X11 - Product Line'
+          X12 = 'X12 - Salesforce Image'
+          X13 = 'X13 - Competitive Pricing'
+          X14 = 'X14 - Warranty & Claims'
+          X15 = 'X15 - New Products'
+          X16 = 'X16 - Order & Billing'
+          X17 = 'X17 - Price Flexibility'
+          X18 = 'X18 - Delivery Speed';
+*;
+Proc Print Data = HBAT;
+*;
+* Principal Components Analysis - All Variables;
+*;
+Proc Princomp Data = HBAT Plots = ALL;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X15 X16 X17 X18;
+*;
+*;
+************ All Variables - Method=Principal Rotation: None and Varimax ****************;
+*;
+* Exploratory Factor Analysis Rotate=NONE All Variables ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=None NFactors=5 Simple MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X15 X16 X17 X18;
+*;
+* Exploratory Factor Analysis Rotate=Varimax All Variables ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=Varimax NFactors=5 Print Score Simple MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X15 X16 X17 X18;
+*;
+*;
+************ X15 Deleted - Method=Principal Rotation: None and Varimax ****************;
+*;
+* Exploratory Factor Analysis Rotate=NONE X15 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=None NFactors=4 Simple MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X16 X17 X18;
+*;
+* Exploratory Factor Analysis Rotate=Varimax X15 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=Varimax NFactors=4 Print Score Simple MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X16 X17 X18;
+*;
+*;
+************ X15 & X17 Deleted - Method=Principal Rotation: None and Varimax ****************;
+*;
+* Exploratory Factor Analysis Rotate=NONE X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=None NFactors=4 Simple MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X16 X18;
+*;
+* Exploratory Factor Analysis Rotate=Varimax X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=Varimax NFactors=4 Print Score Simple MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X11 X12 X13 X14 X16 X18;
+*;
+*;
+************ X11, X15 & X17 Deleted - Method=Principal Rotation: None and Varimax ****************;
+*;
+* Exploratory Factor Analysis Rotate=NONE X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=None NFactors=4 Simple Corr MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+* Exploratory Factor Analysis Rotate=Varimax X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=Varimax NFactors=4 Print Score Simple Corr MSA Plots = ALL MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+*;
+************  Compute Factor and Summated Scores****************; 
+*;
+Proc Factor Data = HBAT Outstat=FactOut Method=Principal Rotate=Varimax NFactors=4 Print Score Simple MSA Plots = ALL MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+Proc Score Data=HBAT Score=FactOut Out=FScore;
+      Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+Proc Print Data = FactOut;
+*;
+Proc Print Data = FScore;
+*;
+Data FScore;
+	Set FScore;
+	Label SumScale1 = 'SumScale1 - Postsale Customer Servicey'
+	      SumScale2 = 'SumScale2 - Marketing'
+          SumScale3 = 'SumScale3 -- Technical Support'
+          SumScale4 = 'SumScale4 -- Product Value';
+	SumScale1 = (X9 + X18 + X16) / 3;
+	SumScale2 = (X12 + X7 + X10) / 3;
+	SumScale3 = (X8 + X14) / 2;
+	SumScale4 = (X6 + (10-X13)) / 2;
+*;
+Proc Print Data = FScore;
+*;
+Proc Means Data = FScore;
+   Var Factor1 Factor2 Factor3 Factor4 SumScale1 SumScale2 SumScale3 SumScale4; 
+*;
+*;
+************  Compute Factor and Summated Correlations ****************; 
+*;
+Proc Corr Data = FScore;
+   Var Factor1 Factor2 Factor3 Factor4 SumScale1 SumScale2 SumScale3 SumScale4; 
+*;
+*;
+**** STOP Examples HERE ********;
+*;
+************ X11, X15 & X17 Deleted - Method=Principal Rotation: None and Varimax ****************;
+*;
+* Exploratory Factor Analysis Rotate=NONE X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=None NFactors=5 Simple Corr MSA Plots = Scree MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+* Exploratory Factor Analysis Rotate=Varimax X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=Varimax NFactors=5 Print Score Simple Corr MSA Plots = ALL MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+*;
+************ X11, X15 & X17 Deleted - Method=Principal Rotation: Promax(3) ****************;
+*;
+* Exploratory Factor Analysis Rotate=NONE X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=Principal Rotate=Promax(3) NFactors=4 Print Score Simple Corr MSA Plots = ALL MINEIGEN=0 Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+*;
+************ X11, X15 & X17 Deleted - Method=PRINIT Rotation: NONE and Varimax ****************;
+*;
+* Exploratory Factor Analysis Method = PRINIT Rotate=NONE X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=PRINIT Rotate=NONE NFactors=3 Simple Corr MSA Plots = Scree MINEIGEN=0 Priors=SMC Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+* Exploratory Factor Analysis Rotate=Varimax X11, X15 & X17 Deleted ;
+*;
+Proc Factor Data = HBAT Method=PRINIT Rotate=Varimax NFactors=3 Print Score Simple Corr MSA Plots = ALL MINEIGEN=0 Priors=SMC Reorder;
+    Var X6 X7 X8 X9 X10 X12 X13 X14 X16 X18;
+*;
+*;
+*	ods graphics off;
+*;
+*;
+Run;
+Quit;
